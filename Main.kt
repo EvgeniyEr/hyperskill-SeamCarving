@@ -3,31 +3,49 @@ package seamcarving
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.File
+import java.io.IOException
 import javax.imageio.ImageIO
 
 
-fun main() {
-    println("Enter rectangle width:")
-    val width = readLine()!!.toInt()
+fun main(args: Array<String>) {
 
-    println("Enter rectangle height:")
-    val height = readLine()!!.toInt()
+    val inputFileName = args[args.indexOf("-in") + 1]
+    val outputFileName = args[args.indexOf("-out") + 1]
 
-    println("Enter output image name:")
-    val outputFileName = readLine()!!
+    try {
+        val file = File(inputFileName)
+        val source = ImageIO.read(file)
 
-//    val width = 20
-//    val height = 10
-//    val outputFileName = "out.png"
+        val width = source.width
+        val height = source.height
 
-    val bImage = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
-    val graphics2D = bImage.graphics
-    graphics2D.color = Color.RED
-    val maxWidth = width - 1
-    val maxHeight = height - 1
-    graphics2D.drawLine(0, 0, maxWidth, maxHeight)
-    graphics2D.drawLine(maxWidth, 0, 0, maxHeight)
+        // Создаем новое пустое изображение, такого же размера
+        val result = BufferedImage(width, height, source.type)
 
-    ImageIO.write(bImage, "png", File(outputFileName));
-    graphics2D.dispose()
+        // Делаем двойной цикл, чтобы обработать каждый пиксель
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+
+                // Получаем цвет текущего пикселя
+                val color = Color(source.getRGB(x, y))
+
+                // Получаем каналы этого цвета
+                val blue = color.blue
+                val red = color.red
+                val green = color.green
+
+                //  Cоздаем новый цвет
+                val newColor = Color(255 - red, 255 - green, 255 - blue)
+
+                // Устанавливаем этот цвет в текущий пиксель результирующего изображения
+                result.setRGB(x, y, newColor.rgb)
+            }
+        }
+
+        // Созраняем результат в новый файл
+        val output = File(outputFileName)
+        ImageIO.write(result, "png", output)
+    } catch (e: IOException) {
+        println("Файл не найден или не удалось сохранить")
+    }
 }
